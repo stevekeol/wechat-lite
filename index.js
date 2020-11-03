@@ -163,14 +163,16 @@ class WeChat extends EventEmitter {
     const qrcode = `${OPEN_WEIXIN}/connect/qrcode/${uuid}`;
     let lastState = 0;
     callback({ state: lastState, qrcode });
-    return (async function loop() {
-      const { wx_errcode: state, wx_code: code } = await Open.polling(uuid);
-      if (state !== 666) setTimeout(loop, 200);
-      if (state !== lastState) {
-        lastState = state;
-        callback({ state, code });
-      }
-    })();
+    return new Promise(resolve =>
+      (async function loop() {
+        const { wx_errcode: state, wx_code: code } = await Open.polling(uuid);
+        if (state === 405) resolve(code);
+        if (state !== 666) setTimeout(loop, 200);
+        if (state !== lastState) {
+          lastState = state;
+          callback({ state, code });
+        }
+      })());
   }
 };
 
